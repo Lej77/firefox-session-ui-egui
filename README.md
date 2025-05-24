@@ -8,6 +8,8 @@ Note that this program simply makes use of the code exposed by the CLI tool at <
 
 ## Getting started
 
+👉 [Click to run the web demo](https://lej77.github.io/firefox-session-ui-egui/) 👈
+
 ### Egui info
 
 `src/app.rs` contains the app.
