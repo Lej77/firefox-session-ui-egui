@@ -43,14 +43,13 @@ rfd = "0.15.0" # File prompts
 either = "1.11.0" # Used in public API of firefox_session_data
 serde_json = { version = "1.0.116", optional = true } # Used to parse session data into the type exported by firefox_session_data
 firefox_session_data = { git = "http://github.com/Lej77/firefox_session_data.git", tag = "v0.1.0", optional = true, features = ["windows-gui"] }
-
+raw-window-handle = "0.6.2" # Used to set parent for file prompts (freezes parent window while they are open)
 
 # Native:
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 env_logger = "0.11"
 tokio = { version = "1.37.0", features = ["rt-multi-thread"], optional = true }
 arboard = "3.4.0" # Clipboard access
-raw-window-handle = "0.6.2"
 
 # web:
 [target.'cfg(target_family = "wasm")'.dependencies]
