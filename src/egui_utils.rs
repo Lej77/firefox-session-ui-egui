@@ -1,3 +1,4 @@
+use std::any::TypeId;
 use egui::TextBuffer;
 
 /// Used as a buffer for [`egui::TextEdit`] when the actual data is immutable
@@ -17,6 +18,10 @@ impl TextBuffer for FakeMutable<'_> {
     }
 
     fn delete_char_range(&mut self, _ch_range: std::ops::Range<usize>) {}
+
+    fn type_id(&self) -> TypeId {
+        unimplemented!()
+    }
 }
 
 pub struct ObservableMutable<'a, T, F> {
@@ -98,7 +103,7 @@ where
         TextBuffer::decrease_indentation(&mut *self.inner, ccursor)
     }
 
-    fn delete_selected(&mut self, cursor_range: &egui::text::CursorRange) -> egui::text::CCursor {
+    fn delete_selected(&mut self, cursor_range: &egui::text_selection::CCursorRange) -> egui::text::CCursor {
         self.notify_change();
         TextBuffer::delete_selected(&mut *self.inner, cursor_range)
     }
@@ -133,7 +138,7 @@ where
     fn delete_paragraph_before_cursor(
         &mut self,
         galley: &egui::Galley,
-        cursor_range: &egui::text::CursorRange,
+        cursor_range: &egui::text_selection::CCursorRange,
     ) -> egui::text::CCursor {
         self.notify_change();
         TextBuffer::delete_paragraph_before_cursor(&mut *self.inner, galley, cursor_range)
@@ -142,9 +147,13 @@ where
     fn delete_paragraph_after_cursor(
         &mut self,
         galley: &egui::Galley,
-        cursor_range: &egui::text::CursorRange,
+        cursor_range: &egui::text_selection::CCursorRange,
     ) -> egui::text::CCursor {
         self.notify_change();
         TextBuffer::delete_paragraph_after_cursor(&mut *self.inner, galley, cursor_range)
+    }
+
+    fn type_id(&self) -> TypeId {
+        unimplemented!()
     }
 }

@@ -11,3 +11,6 @@
 
 # https://github.com/lycheeverse/lychee
 .lycheecache
+
+# IntelliJ
+.idea

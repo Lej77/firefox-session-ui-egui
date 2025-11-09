@@ -7,6 +7,10 @@ license = "MIT OR Apache-2.0"
 include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 rust-version = "1.81"
 
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
 [features]
 default = ["real_data"]
 
@@ -20,14 +24,10 @@ real_data = [
 # Support more html to PDF converters (increases binary size):
 html_to_pdf_all = ["firefox_session_data?/html_to_pdf_all"]
 
-[package.metadata.docs.rs]
-all-features = true
-targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
-
 [dependencies]
-egui = "0.31.0"
-egui_extras = "0.31.0"
-eframe = { version = "0.31.0", default-features = false, features = [
+egui = "0.33.0"
+egui_extras = "0.33.0"
+eframe = { version = "0.33.0", default-features = false, features = [
     "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
@@ -42,7 +42,7 @@ serde = { version = "1", features = ["derive"] } # You only need serde if you wa
 rfd = "0.15.0" # File prompts
 either = "1.11.0" # Used in public API of firefox_session_data
 serde_json = { version = "1.0.116", optional = true } # Used to parse session data into the type exported by firefox_session_data
-firefox_session_data = { git = "http://github.com/Lej77/firefox_session_data.git", tag = "v0.1.0", optional = true, features = ["windows-gui"] }
+firefox_session_data = { git = "http://github.com/Lej77/firefox_session_data.git", tag = "v0.1.3", optional = true, features = ["windows-gui"] }
 raw-window-handle = "0.6.2" # Used to set parent for file prompts (freezes parent window while they are open)
 
 # Native:
@@ -67,8 +67,7 @@ js-sys = "0.3"
 
 # Windows:
 [build-dependencies]
-# Pinned since v0.1.21 is broken, see https://github.com/BenjaminRi/winresource/issues/27
-winresource = "=0.1.20" # Executable icon on Windows
+winresource = "0.1.20" # Executable icon on Windows
 
 
 [profile.release]
