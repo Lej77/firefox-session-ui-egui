@@ -31,7 +31,7 @@ jobs:
 
     # https://trunkrs.dev/guide/getting-started/installation.html#using-cargo-binstall
     - name: Install the Trunk CLI (using binstall)
-      run: cargo binstall trunk
+      run: cargo binstall trunk --force
 
     - name: Release Build (using Trunk)
       # Environment $public_url resolves to the github project page.
