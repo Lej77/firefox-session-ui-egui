@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["Lej77 <31554212+Lej77@users.noreply.github.com>"]
 license = "MIT OR Apache-2.0"
 include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
+repository = "https://github.com/Lej77/firefox-session-ui-egui"
 rust-version = "1.81"
 
 [package.metadata.docs.rs]
