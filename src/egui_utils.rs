@@ -1,5 +1,5 @@
-use std::any::TypeId;
 use egui::TextBuffer;
+use std::any::TypeId;
 
 /// Used as a buffer for [`egui::TextEdit`] when the actual data is immutable
 /// but we want the same styling as the mutable case.
@@ -103,7 +103,10 @@ where
         TextBuffer::decrease_indentation(&mut *self.inner, ccursor)
     }
 
-    fn delete_selected(&mut self, cursor_range: &egui::text_selection::CCursorRange) -> egui::text::CCursor {
+    fn delete_selected(
+        &mut self,
+        cursor_range: &egui::text_selection::CCursorRange,
+    ) -> egui::text::CCursor {
         self.notify_change();
         TextBuffer::delete_selected(&mut *self.inner, cursor_range)
     }
