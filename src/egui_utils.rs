@@ -1,4 +1,7 @@
-use egui::TextBuffer;
+use egui::{
+    TextBuffer,
+    text::{ByteIndex, CharIndex},
+};
 use std::any::TypeId;
 
 /// Used as a buffer for [`egui::TextEdit`] when the actual data is immutable
@@ -13,11 +16,11 @@ impl TextBuffer for FakeMutable<'_> {
         self.0
     }
 
-    fn insert_text(&mut self, _text: &str, _ch_idx: usize) -> usize {
+    fn insert_text(&mut self, _text: &str, _ch_idx: CharIndex) -> usize {
         0
     }
 
-    fn delete_char_range(&mut self, _ch_range: std::ops::Range<usize>) {}
+    fn delete_char_range(&mut self, _ch_range: std::ops::Range<CharIndex>) {}
 
     fn type_id(&self) -> TypeId {
         unimplemented!()
@@ -55,21 +58,21 @@ where
         TextBuffer::as_str(&*self.inner)
     }
 
-    fn insert_text(&mut self, text: &str, char_index: usize) -> usize {
+    fn insert_text(&mut self, text: &str, char_index: CharIndex) -> usize {
         self.notify_change();
         TextBuffer::insert_text(&mut *self.inner, text, char_index)
     }
 
-    fn delete_char_range(&mut self, char_range: std::ops::Range<usize>) {
+    fn delete_char_range(&mut self, char_range: std::ops::Range<CharIndex>) {
         self.notify_change();
         TextBuffer::delete_char_range(&mut *self.inner, char_range)
     }
 
-    fn char_range(&self, char_range: std::ops::Range<usize>) -> &str {
+    fn char_range(&self, char_range: std::ops::Range<CharIndex>) -> &str {
         TextBuffer::char_range(&*self.inner, char_range)
     }
 
-    fn byte_index_from_char_index(&self, char_index: usize) -> usize {
+    fn byte_index_from_char_index(&self, char_index: CharIndex) -> ByteIndex {
         TextBuffer::byte_index_from_char_index(&*self.inner, char_index)
     }
 

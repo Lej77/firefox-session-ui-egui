@@ -278,7 +278,15 @@ impl FirefoxSessionDataApp {
                                 Err(e) => Command::SetStatus(format!(
                                     "Failed to list windows in session: {e}"
                                 )),
-                            })
+                            });
+                        }
+                        Some(host::FileData::Chromium { .. }) => {
+                            return Some(match data.get_groups_from_session(true).await {
+                                Ok(all_groups) => Command::ParsedTabGroups(all_groups),
+                                Err(e) => Command::SetStatus(format!(
+                                    "Failed to list windows in Chromium session: {e}"
+                                )),
+                            });
                         }
                         None => unreachable!("we just loaded the data"),
                     }
@@ -296,15 +304,14 @@ impl eframe::App for FirefoxSessionDataApp {
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
         while let Some(command) = self.background.poll_work() {
-            self.handle_command(ctx, command);
+            self.handle_command(ui, command);
         }
-
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+        egui::Panel::top("top_panel").show(ui, |ui| {
             // The top panel is often a good place for a menu bar:
 
             egui::MenuBar::new().ui(ui, |ui| {
@@ -313,7 +320,7 @@ impl eframe::App for FirefoxSessionDataApp {
                 if !is_web {
                     ui.menu_button("File", |ui| {
                         if ui.button("Quit").clicked() {
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                            ui.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                     });
                     ui.add_space(16.0);
@@ -327,10 +334,10 @@ impl eframe::App for FirefoxSessionDataApp {
             let mut finished = false;
 
             let modal_response = egui::Modal::new(egui::Id::new("wizard"))
-                .frame(egui::Frame::popup(&ctx.style()).inner_margin(30_i8))
-                .show(ctx, |ui| {
+                .frame(egui::Frame::popup(ui.style()).inner_margin(30_i8))
+                .show(ui, |ui| {
                     ui.add_space(10.);
-                    ui.strong("Firefox Profiles:");
+                    ui.strong("Browser Profiles:");
                     ui.add_space(10.);
                     egui_extras::TableBuilder::new(ui)
                         .sense(egui::Sense::click())
@@ -359,13 +366,13 @@ impl eframe::App for FirefoxSessionDataApp {
                 self.wizard_state = None;
             } else if finished {
                 self.wizard_state = None;
-                self.load_input_data(ctx);
+                self.load_input_data(ui);
             }
         }
 
-        egui::SidePanel::left("selected_windows")
-            .min_width(120.0)
-            .show(ctx, |ui| {
+        egui::Panel::left("selected_windows")
+            .min_size(120.0)
+            .show(ui, |ui| {
                 ui.style_mut().interaction.selectable_labels = false;
                 ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                     egui::warn_if_debug_build(ui);
@@ -425,7 +432,7 @@ impl eframe::App for FirefoxSessionDataApp {
                                         });
                                         if row.response().clicked() {
                                             self.background.sender().send(
-                                                ctx,
+                                                &row.response().ctx,
                                                 Command::ChangeTabGroupSelection {
                                                     open,
                                                     index,
@@ -446,7 +453,7 @@ impl eframe::App for FirefoxSessionDataApp {
                 });
             });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
             ui.horizontal(|ui| {
                 ui.label("Path to sessionstore file:");
@@ -459,7 +466,7 @@ impl eframe::App for FirefoxSessionDataApp {
                         #[cfg(target_family = "wasm")]
                         let handle_fut = crate::host::prompt_load_file(None);
 
-                        self.background.spawn(ctx, async move {
+                        self.background.spawn(ui, async move {
                             let handle = handle_fut.await?;
                             #[cfg(target_family = "wasm")]
                             let name = handle.file_name();
@@ -471,7 +478,7 @@ impl eframe::App for FirefoxSessionDataApp {
                     if cfg!(not(target_family = "wasm")) && ui.button("Wizard").clicked() {
                         log::debug!("Pressed Wizard button");
                         self.wizard_state = Some(host::FirefoxProfileInfo::all_profiles());
-                        ctx.request_repaint();
+                        ui.request_repaint();
                     }
                     egui::TextEdit::singleline(&mut ObservableMutable::new(
                         &mut self.input_path,
@@ -488,7 +495,7 @@ impl eframe::App for FirefoxSessionDataApp {
                 ui.label("Current data was loaded from:");
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if ui.button("Load new data").clicked() {
-                        self.load_input_data(ctx);
+                        self.load_input_data(ui);
                     }
                     egui::TextEdit::singleline(&mut FakeMutable(self.loaded_path.as_str()))
                         .desired_width(f32::INFINITY)
@@ -508,7 +515,7 @@ impl eframe::App for FirefoxSessionDataApp {
                 ui.horizontal(|ui| {
                     if ui.button("Copy links to clipboard").clicked() {
                         let text_to_copy = self.preview.clone();
-                        self.background.spawn(ctx, async move {
+                        self.background.spawn(ui, async move {
                             if let Err(e) =
                                 crate::clipboard::write_text_to_clipboard(text_to_copy.as_str())
                                     .await
@@ -523,7 +530,7 @@ impl eframe::App for FirefoxSessionDataApp {
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if ui.button("Save links to file").clicked() {
-                            self.background.sender().send(ctx, Command::SaveLinksToFile);
+                            self.background.sender().send(ui, Command::SaveLinksToFile);
                         }
 
                         egui::ComboBox::from_label("Output format: ")
@@ -566,7 +573,7 @@ impl eframe::App for FirefoxSessionDataApp {
                                 #[cfg(target_family = "wasm")]
                                 let handle_fut = crate::host::prompt_save_file(None);
 
-                                self.background.spawn(ctx, async move {
+                                self.background.spawn(ui, async move {
                                     let handle = handle_fut.await?;
                                     #[cfg(target_family = "wasm")]
                                     let name = handle.file_name();
